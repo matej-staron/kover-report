@@ -51,7 +51,7 @@ export const run = async (
     throw Error('At least one path must be provided')
   }
 
-  const details = getDetails(event, github.context.payload)
+  const details = getDetails(event, github.context)
 
   const changedFiles = await getChangedFiles(
     details.base,
@@ -125,26 +125,28 @@ export const run = async (
 
 export const getDetails = (
   event: string,
-  payload: typeof actionsGithub.context.payload
+  context: typeof actionsGithub.context
 ): {prNumber: number | null; base: string; head: string} => {
   switch (event) {
     case 'pull_request':
     case 'pull_request_target':
       return {
-        prNumber: payload.pull_request?.number ?? null,
-        base: payload.pull_request?.base.sha,
-        head: payload.pull_request?.head.sha
+        prNumber: context.payload.pull_request?.number ?? null,
+        base: context.payload.pull_request?.base.sha,
+        head: context.payload.pull_request?.head.sha
       }
     case 'push':
       return {
         prNumber: null,
-        base: payload.before,
-        head: payload.after
+        base: context.payload.before,
+        head: context.payload.after
       }
     default:
-      throw Error(
-        `Only pull requests and pushes are supported, ${event} not supported.`
-      )
+      return {
+        prNumber: null,
+        base: context.sha,
+        head: context.sha
+      }
   }
 }
 
