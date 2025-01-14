@@ -48,7 +48,7 @@ const run = (core, github) => __awaiter(void 0, void 0, void 0, function* () {
     if (paths.length === 0) {
         throw Error('At least one path must be provided');
     }
-    const details = (0, exports.getDetails)(event, github.context.payload);
+    const details = (0, exports.getDetails)(event, github.context);
     const changedFiles = yield (0, exports.getChangedFiles)(details.base, details.head, octokit, github.context.repo);
     const overallCoverage = {
         missed: 0,
@@ -87,24 +87,28 @@ const run = (core, github) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.run = run;
-const getDetails = (event, payload) => {
+const getDetails = (event, context) => {
     var _a, _b, _c, _d;
     switch (event) {
         case 'pull_request':
         case 'pull_request_target':
             return {
-                prNumber: (_b = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : null,
-                base: (_c = payload.pull_request) === null || _c === void 0 ? void 0 : _c.base.sha,
-                head: (_d = payload.pull_request) === null || _d === void 0 ? void 0 : _d.head.sha
+                prNumber: (_b = (_a = context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : null,
+                base: (_c = context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.base.sha,
+                head: (_d = context.payload.pull_request) === null || _d === void 0 ? void 0 : _d.head.sha
             };
         case 'push':
             return {
                 prNumber: null,
-                base: payload.before,
-                head: payload.after
+                base: context.payload.before,
+                head: context.payload.after
             };
         default:
-            throw Error(`Only pull requests and pushes are supported, ${event} not supported.`);
+            return {
+                prNumber: null,
+                base: context.sha,
+                head: context.sha
+            };
     }
 };
 exports.getDetails = getDetails;
